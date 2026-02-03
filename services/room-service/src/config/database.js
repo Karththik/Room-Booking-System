@@ -1,19 +1,19 @@
-const mysql = require('mysql2');
+const mongoose = require("mongoose");
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
+async function connectDB() {
+  const uri = process.env.MONGO_URL;
 
-pool.getConnection((err, conn) => {
-  if (err) {
-    console.error('MySQL connection failed:', err.message);
-  } else {
-    console.log('MySQL connected');
-    conn.release();
+  if (!uri) {
+    throw new Error("MONGO_URL is not defined in .env");
   }
-});
 
-module.exports = pool.promise();
+  try {
+    await mongoose.connect(uri);
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = connectDB;

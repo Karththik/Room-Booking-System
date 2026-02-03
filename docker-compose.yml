@@ -7,19 +7,3 @@ services:
       - "3000:3000"
     env_file:
       - ./services/room-service/.env
-    depends_on:
-      - mysql-room
-
-  mysql-room:
-    image: mysql:8
-    container_name: mysql-room
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: room_db
-    volumes:
-      - mysql-room-data:/var/lib/mysql
-
-volumes:
-  mysql-room-data:
