@@ -1,21 +1,26 @@
 const express = require("express");
-const connectDB = require("./config/database");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const authRoutes = require("./routes/auth.routes");
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Room service is running");
-});
-
-app.get("/ok", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// 🔥 CONNECT DATABASE ONCE
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => {
+    console.error("❌ MongoDB error:", err.message);
+    process.exit(1);
   });
+
+// ROUTES
+app.use("/api/auth", authRoutes);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });

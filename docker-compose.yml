@@ -1,9 +1,9 @@
-version: "3.9"
+# version: "3.9"
 
-services:
-  room-service:
-    build: ./services/room-service
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./services/room-service/.env
+# services:
+#   room-service:
+#     build: ./services/room-service
+#     ports:
+#       - "3000:3000"
+#     env_file:
+#       - ./services/room-service/.env
