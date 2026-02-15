@@ -1,41 +1,121 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
-// ================= REGISTER =================
+// ================= REGISTER USER =================
+
 exports.register = async (req, res) => {
   try {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      identityNumber,
+      role,
+      password
+    } = req.body;
+
+
+    // ✅ VALIDATION
+
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !phone ||
+      !address ||
+      !identityNumber ||
+      !role ||
+      !password
+    ) {
       return res.status(400).json({
-        message: "Email and password are required"
+        success: false,
+        message: "All fields are required"
       });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+
+    // ✅ CHECK EMAIL EXISTS
+
+    const existingEmail = await User.findOne({ email });
+
+    if (existingEmail) {
       return res.status(400).json({
-        message: "User already exists"
+        success: false,
+        message: "Email already registered"
       });
     }
+
+
+    // ✅ CHECK IDENTITY EXISTS
+
+    const existingIdentity = await User.findOne({ identityNumber });
+
+    if (existingIdentity) {
+      return res.status(400).json({
+        success: false,
+        message: "Identity number already registered"
+      });
+    }
+
+
+    // ✅ HASH PASSWORD
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+
+    // ✅ CREATE USER
+
     const user = await User.create({
+
+      firstName,
+      lastName,
       email,
+      phone,
+      address,
+      identityNumber,
+      role,
       password: hashedPassword
+
     });
+
+
+    // ✅ RESPONSE
 
     res.status(201).json({
+
+      success: true,
+
       message: "User registered successfully",
-      userId: user._id
+
+      data: {
+
+        id: user._id,
+        name: user.firstName + " " + user.lastName,
+        email: user.email,
+        role: user.role
+
+      }
+
     });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+
+  } catch (error) {
+
+    console.error("Register error:", error);
+
+    res.status(500).json({
+
+      success: false,
+      message: "Server error"
+
+    });
+
   }
 };
+
 
 // ================= LOGIN =================
 exports.login = async (req, res) => {
