@@ -5,48 +5,67 @@ const Bed = require("../models/Bed");
 
 exports.createBooking = async (req, res) => {
   try {
+
     const { property, room, bed } = req.body;
 
     const prop = await Property.findById(property);
 
+    if (!prop) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
     // 🔴 FULL PROPERTY BOOKING
     if (!room && !bed) {
+
       if (!prop.isAvailable) {
-        return res.status(400).json("Property already rented");
+        return res.status(400).json({ message: "Property already rented" });
       }
 
       prop.isAvailable = false;
       prop.rentedBy = req.user.id;
+
       await prop.save();
     }
 
-    // 🔴 ROOM BOOKING
+    // 🔵 ROOM BOOKING
     if (room) {
-      if (!prop.isAvailable) {
-        // only sub-owner allowed
-        if (prop.rentedBy.toString() === req.user.id) {
-          return res.status(400).json("Owner cannot book own room");
-        }
+
+      const roomData = await Room.findById(room);
+
+      if (!roomData.isAvailable) {
+        return res.status(400).json({ message: "Room already booked" });
       }
 
-      const r = await Room.findById(room);
-      if (!r.isAvailable) {
-        return res.status(400).json("Room not available");
-      }
+      roomData.isAvailable = false;
 
-      r.isAvailable = false;
-      await r.save();
+      await roomData.save();
     }
 
-    // 🔴 BED BOOKING
+    // 🟢 BED BOOKING
     if (bed) {
-      const b = await Bed.findById(bed);
-      if (!b.isAvailable) {
-        return res.status(400).json("Bed not available");
+
+      const bedData = await Bed.findById(bed);
+
+      if (!bedData.isAvailable) {
+        return res.status(400).json({ message: "Bed already booked" });
       }
 
-      b.isAvailable = false;
-      await b.save();
+      bedData.isAvailable = false;
+
+      await bedData.save();
+
+      // 🔥 Check if all beds in room booked
+      const remainingBeds = await Bed.countDocuments({
+        room: bedData.room,
+        isAvailable: true
+      });
+
+      if (remainingBeds === 0) {
+        await Room.findByIdAndUpdate(
+          bedData.room,
+          { isAvailable: false }
+        );
+      }
     }
 
     const booking = await Booking.create({
@@ -54,15 +73,24 @@ exports.createBooking = async (req, res) => {
       user: req.user.id
     });
 
-    res.json(booking);
-  } catch (err) {
-    res.status(500).json(err);
+    res.status(201).json(booking);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
 exports.myBookings = async (req, res) => {
-  const bookings = await Booking.find({ user: req.user.id })
+  try {
+
+    const bookings = await Booking.find({
+      user: req.user.id
+    })
     .populate("property room bed");
 
-  res.json(bookings);
+    res.json(bookings);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

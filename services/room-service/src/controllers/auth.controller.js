@@ -1,11 +1,10 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken"); // 🔥 ADD THIS
 
 // ================= REGISTER USER =================
-
 exports.register = async (req, res) => {
   try {
-
     const {
       firstName,
       lastName,
@@ -17,9 +16,7 @@ exports.register = async (req, res) => {
       password
     } = req.body;
 
-
     // ✅ VALIDATION
-
     if (
       !firstName ||
       !lastName ||
@@ -36,11 +33,8 @@ exports.register = async (req, res) => {
       });
     }
 
-
     // ✅ CHECK EMAIL EXISTS
-
     const existingEmail = await User.findOne({ email });
-
     if (existingEmail) {
       return res.status(400).json({
         success: false,
@@ -48,11 +42,8 @@ exports.register = async (req, res) => {
       });
     }
 
-
     // ✅ CHECK IDENTITY EXISTS
-
     const existingIdentity = await User.findOne({ identityNumber });
-
     if (existingIdentity) {
       return res.status(400).json({
         success: false,
@@ -60,16 +51,11 @@ exports.register = async (req, res) => {
       });
     }
 
-
     // ✅ HASH PASSWORD
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-
     // ✅ CREATE USER
-
     const user = await User.create({
-
       firstName,
       lastName,
       email,
@@ -78,41 +64,27 @@ exports.register = async (req, res) => {
       identityNumber,
       role,
       password: hashedPassword
-
     });
 
-
     // ✅ RESPONSE
-
     res.status(201).json({
-
       success: true,
-
       message: "User registered successfully",
-
       data: {
-
         id: user._id,
         name: user.firstName + " " + user.lastName,
         email: user.email,
         role: user.role
-
       }
-
     });
 
-
   } catch (error) {
-
     console.error("Register error:", error);
 
     res.status(500).json({
-
       success: false,
       message: "Server error"
-
     });
-
   }
 };
 
@@ -144,10 +116,23 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 3️⃣ Success
+    // 🔥 3️⃣ CREATE TOKEN
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "7d" }
+    );
+
+    // ✅ 4️⃣ RESPONSE (UPDATED)
     res.status(200).json({
       message: "Login successful",
-      userId: user._id
+      token, // 🔥 IMPORTANT
+      user: {
+        id: user._id,
+        name: user.firstName + " " + user.lastName,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (err) {

@@ -7,14 +7,27 @@ const RoomSchema = new mongoose.Schema({
     required: true
   },
 
-  roomNumber: String,
+  roomNumber: {
+    type: String,
+    required: true
+  },
+
   price: Number,
   capacity: Number,
 
   isAvailable: {
     type: Boolean,
     default: true
-  }
-});
+  },
+
+  // 🔥 add this
+  beds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bed"
+    }
+  ]
+
+}, { timestamps: true });
 
 module.exports = mongoose.model("Room", RoomSchema);

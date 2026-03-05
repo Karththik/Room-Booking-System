@@ -7,8 +7,15 @@ const PropertySchema = new mongoose.Schema({
     required: true
   },
 
-  title: String,
-  location: String,
+  title: {
+    type: String,
+    required: true
+  },
+
+  location: {
+    type: String,
+    required: true
+  },
 
   propertyType: {
     type: String,
@@ -22,19 +29,34 @@ const PropertySchema = new mongoose.Schema({
     default: "ANY"
   },
 
-  price: Number,
+  price: {
+    type: Number
+  },
 
-  // 🔥 NEW IMPORTANT FIELDS
+  // 🔥 PROPERTY STATUS
   isAvailable: {
     type: Boolean,
     default: true
   },
 
+  // 🔥 WHO RENTED FULL PROPERTY
   rentedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     default: null
-  }
+  },
+
+  // 🔥 ADD THIS (Rooms under this property)
+  rooms: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Room"
+    }
+  ]
+
+},
+{
+  timestamps: true
 });
 
 module.exports = mongoose.model("Property", PropertySchema);

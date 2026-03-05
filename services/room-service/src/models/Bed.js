@@ -7,13 +7,18 @@ const BedSchema = new mongoose.Schema({
     required: true
   },
 
-  bedNumber: String,
+  bedNumber: {
+    type: String,
+    required: true
+  },
+
   price: Number,
 
   isAvailable: {
     type: Boolean,
     default: true
   }
-});
+
+}, { timestamps: true });
 
 module.exports = mongoose.model("Bed", BedSchema);
