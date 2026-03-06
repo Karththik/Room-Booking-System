@@ -6,9 +6,14 @@ const Room = require("../models/Room");
 exports.createBed = async (req, res) => {
   try {
 
+    const imagePaths = req.files.map(
+      file => "uploads/" + file.filename
+    );
+
     const bed = await Bed.create({
       ...req.body,
-      room: req.params.roomId
+      room: req.params.roomId,
+      images: imagePaths
     });
 
     // push bed into room

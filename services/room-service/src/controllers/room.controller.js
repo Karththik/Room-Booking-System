@@ -4,44 +4,39 @@ const Property = require("../models/Property");
 // CREATE ROOM
 exports.createRoom = async (req, res) => {
   try {
+    const imagePaths = req.files.map((file) => "uploads/" + file.filename);
 
     const room = await Room.create({
       ...req.body,
-      property: req.params.propertyId
+      property: req.params.propertyId,
+      images: imagePaths,
     });
 
     // push room into property
-    await Property.findByIdAndUpdate(
-      req.params.propertyId,
-      { $push: { rooms: room._id } }
-    );
+    await Property.findByIdAndUpdate(req.params.propertyId, {
+      $push: { rooms: room._id },
+    });
 
     res.status(201).json(room);
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 // GET ALL ROOMS
 exports.getRooms = async (req, res) => {
   try {
-
     const rooms = await Room.find().populate("property");
 
     res.json(rooms);
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
 // GET ROOM BY ID
 exports.getRoomById = async (req, res) => {
   try {
-
     const room = await Room.findById(req.params.id)
       .populate("property")
       .populate("beds");
@@ -51,39 +46,30 @@ exports.getRoomById = async (req, res) => {
     }
 
     res.json(room);
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 // UPDATE ROOM
 exports.updateRoom = async (req, res) => {
   try {
-
-    const room = await Room.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const room = await Room.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     res.json(room);
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
 // DELETE ROOM
 exports.deleteRoom = async (req, res) => {
   try {
-
     await Room.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Room deleted successfully" });
-
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -91,14 +77,11 @@ exports.deleteRoom = async (req, res) => {
 
 exports.getAvailableRooms = async (req, res) => {
   try {
-
     const rooms = await Room.find({
-      isAvailable: true
-    })
-      .populate("property");
+      isAvailable: true,
+    }).populate("property");
 
     res.json(rooms);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -106,7 +89,6 @@ exports.getAvailableRooms = async (req, res) => {
 
 exports.searchRooms = async (req, res) => {
   try {
-
     const { location, minPrice, maxPrice, capacity } = req.query;
 
     const roomFilter = {};
@@ -126,16 +108,14 @@ exports.searchRooms = async (req, res) => {
       propertyFilter.location = { $regex: location, $options: "i" };
     }
 
-    const rooms = await Room.find(roomFilter)
-      .populate({
-        path: "property",
-        match: propertyFilter
-      });
+    const rooms = await Room.find(roomFilter).populate({
+      path: "property",
+      match: propertyFilter,
+    });
 
-    const filteredRooms = rooms.filter(r => r.property !== null);
+    const filteredRooms = rooms.filter((r) => r.property !== null);
 
     res.json(filteredRooms);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

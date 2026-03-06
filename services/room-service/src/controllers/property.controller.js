@@ -3,9 +3,12 @@ const Property = require("../models/Property");
 // CREATE
 exports.createProperty = async (req, res) => {
   try {
+    const imagePaths = req.files.map((file) => "uploads/" + file.filename);
+
     const property = await Property.create({
       ...req.body,
-      owner: req.user.id
+      owner: req.user.id,
+      images: imagePaths,
     });
 
     res.status(201).json(property);
@@ -42,11 +45,9 @@ exports.getPropertyById = async (req, res) => {
 // UPDATE
 exports.updateProperty = async (req, res) => {
   try {
-    const property = await Property.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!property) {
       return res.status(404).json({ message: "Property not found" });
@@ -75,7 +76,6 @@ exports.deleteProperty = async (req, res) => {
 
 exports.searchProperties = async (req, res) => {
   try {
-
     const { location, minPrice, maxPrice, gender } = req.query;
 
     const filter = {};
@@ -94,11 +94,9 @@ exports.searchProperties = async (req, res) => {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    const properties = await Property.find(filter)
-      .populate("rooms");
+    const properties = await Property.find(filter).populate("rooms");
 
     res.json(properties);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

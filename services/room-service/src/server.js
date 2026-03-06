@@ -34,6 +34,7 @@ app.use("/api/property", propertyRoutes);
 app.use("/api/room", roomRoutes);
 app.use("/api/bed", bedRoutes);
 app.use("/api/booking", bookingRoutes);
+app.use("/uploads", express.static("public/uploads"));
 
 // ✅ TEST ROUTE
 app.get("/", (req, res) => {
