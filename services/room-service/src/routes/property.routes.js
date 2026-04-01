@@ -11,6 +11,12 @@ router.post("/create", auth, role("owner", "admin"), upload.array("images", 5), 
 // GET ALL → public
 router.get("/", ctrl.getAllProperties);
 
+router.get("/search", ctrl.searchProperties);
+
+router.get("/owner/dashboard", auth, role("owner", "admin"), ctrl.ownerDashboard);
+
+router.get("/details/:id", ctrl.getPropertyDetails);
+
 // GET BY ID → public
 router.get("/:id", ctrl.getPropertyById);
 
@@ -20,5 +26,4 @@ router.put("/:id", auth, role("owner", "admin"), upload.array("images", 5), ctrl
 // DELETE → owner/admin
 router.delete("/:id", auth, role("owner", "admin"), upload.array("images", 5), ctrl.deleteProperty);
 
-router.get("/search", ctrl.searchProperties);
 module.exports = router;

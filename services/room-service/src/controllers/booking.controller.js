@@ -137,6 +137,15 @@ exports.confirmBooking = async (req, res) => {
         { isAvailable: false }
       );
 
+      // cascade update for room if all beds are occupied
+      if (booking.room) {
+        const roomToUpdate = await Room.findById(booking.room).populate("beds");
+        if (roomToUpdate && roomToUpdate.beds.every(b => !b.isAvailable)) {
+          roomToUpdate.isAvailable = false;
+          await roomToUpdate.save();
+        }
+      }
+
     }
 
     if (!booking.room && !booking.bed) {
@@ -232,6 +241,11 @@ exports.cancelBooking = async (req, res) => {
         booking.bed,
         { isAvailable: true }
       );
+
+      // restore room availability cascade
+      if (booking.room) {
+        await Room.findByIdAndUpdate(booking.room, { isAvailable: true });
+      }
 
     }
 
